@@ -396,7 +396,7 @@ public class CronParser {
 		File stderrFile = null;
 		ArrayList envsList = new ArrayList();
 		String command = null;
-		ArrayList argsList = new ArrayList();
+		ArrayList<String> argsList = new ArrayList<>();
 		for (int i = 0; i < size; i++) {
 			String tk = (String) splitted.get(i);
 			// Check the local status.
@@ -430,6 +430,7 @@ public class CronParser {
 				}
 			}
 		}
+		String[] argsArray = argsList.toArray(new String[argsList.size()]);
 		// Task preparing.
 		Task task;
 		// Command evaluation.
@@ -454,11 +455,13 @@ public class CronParser {
 							+ line);
 				}
 			}
-			String[] args = new String[argsList.size()];
-			for (int i = 0; i < argsList.size(); i++) {
-				args[i] = (String) argsList.get(i);
+			task = new StaticMethodTask(className, methodName, argsArray);
+		} else if (command.startsWith("script:")) {
+			String scriptName = command.substring(7);
+			if (scriptName.length() == 0) {
+				throw new Exception("Invalid script name on line: " + line);
 			}
-			task = new StaticMethodTask(className, methodName, args);
+			task = new JSR223Task(scriptName, argsArray);
 		} else {
 			// External command.
 			String[] cmdarray = new String[1 + argsList.size()];
